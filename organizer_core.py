@@ -58,11 +58,19 @@ def default_folder() -> Path:
     return Path.home() / "Downloads"
 
 
-def iter_files(folder: Path) -> Iterable[Path]:
+def iter_files(folder: Path, excluded_paths: Iterable[Path] = ()) -> Iterable[Path]:
     """Yield files recursively while excluding generated and environment folders."""
+    excluded = {path.expanduser().resolve() for path in excluded_paths}
     for root, directories, filenames in os.walk(folder):
+        root_path = Path(root).resolve()
+        if root_path in excluded or any(path in root_path.parents for path in excluded):
+            directories[:] = []
+            continue
         directories[:] = [
-            name for name in directories if name not in EXCLUDED_DIR_NAMES
+            name
+            for name in directories
+            if name not in EXCLUDED_DIR_NAMES
+            and (root_path / name).resolve() not in excluded
         ]
         for filename in filenames:
             path = Path(root) / filename
@@ -164,12 +172,14 @@ def unique_target(folder: Path, source: Path) -> Path:
     return target
 
 
-def find_duplicate_groups(folder: Path) -> dict[Path, dict[str, list[Path]]]:
+def find_duplicate_groups(
+    folder: Path, excluded_paths: Iterable[Path] = ()
+) -> dict[Path, dict[str, list[Path]]]:
     """Find exact duplicate groups independently inside every directory."""
     groups_by_folder: dict[Path, dict[str, list[Path]]] = {}
     hashes_by_folder: dict[Path, dict[str, list[Path]]] = {}
 
-    for path in iter_files(folder):
+    for path in iter_files(folder, excluded_paths):
         parent = path.parent
         digest = file_hash(path)
         if digest is not None:
@@ -187,6 +197,28 @@ def find_duplicate_groups(folder: Path) -> dict[Path, dict[str, list[Path]]]:
         if duplicates:
             groups_by_folder[parent] = duplicates
     return groups_by_folder
+
+
+def find_global_duplicate_groups(
+    roots: Iterable[Path], excluded_paths: Iterable[Path] = ()
+) -> dict[str, list[Path]]:
+    """Find exact duplicates across all directories below the supplied roots."""
+    paths_by_hash: dict[str, list[Path]] = {}
+    for root in roots:
+        for path in iter_files(Path(root), excluded_paths):
+            digest = file_hash(path)
+            if digest is not None:
+                paths_by_hash.setdefault(digest, []).append(path)
+
+    return {
+        digest: sorted(
+            paths,
+            key=lambda item: (item.stat().st_mtime_ns, str(item).casefold()),
+            reverse=True,
+        )
+        for digest, paths in paths_by_hash.items()
+        if len(paths) > 1
+    }
 
 
 def move_duplicates(
@@ -218,6 +250,31 @@ def move_duplicates(
     return moved
 
 
+def move_global_duplicates(
+    groups: dict[str, list[Path]], dry_run: bool = False
+) -> int:
+    """Keep the newest global copy and move older copies to their own folders."""
+    moved = 0
+    for paths in groups.values():
+        newest = paths[0]
+        for older in paths[1:]:
+            duplicates_folder = older.parent / DUPLICATES_DIR_NAME
+            target = unique_target(duplicates_folder, older)
+            if dry_run:
+                print(f"[DRY RUN] Keep {newest}; move {older} -> {target}")
+                moved += 1
+                continue
+            try:
+                duplicates_folder.mkdir(exist_ok=True)
+                shutil.move(str(older), str(target))
+                print(f"Kept newest: {newest}")
+                print(f"Moved global duplicate: {older} -> {target}")
+                moved += 1
+            except OSError as error:
+                print(f"[MOVE ERROR] {older}: {error}")
+    return moved
+
+
 def move_to_category(path: Path, root: Path, category: str, dry_run: bool = False) -> Path:
     destination_folder = root / ORGANIZED_DIR_NAME / category
     target = unique_target(destination_folder, path)
@@ -230,8 +287,15 @@ def move_to_category(path: Path, root: Path, category: str, dry_run: bool = Fals
     return target
 
 
-def organize_files(root: Path, model: str, use_llm: bool, dry_run: bool, stats: RunStats) -> None:
-    for path in list(iter_files(root)):
+def organize_files(
+    root: Path,
+    model: str,
+    use_llm: bool,
+    dry_run: bool,
+    stats: RunStats,
+    excluded_paths: Iterable[Path] = (),
+) -> None:
+    for path in list(iter_files(root, excluded_paths)):
         stats.scanned += 1
         try:
             category = classify_file(path, model=model, use_llm=use_llm)
@@ -243,31 +307,58 @@ def organize_files(root: Path, model: str, use_llm: bool, dry_run: bool, stats: 
             print(f"[MOVE ERROR] {message}")
 
 
-def run_once(root: Path, model: str, use_llm: bool, dry_run: bool = False) -> RunStats:
+def run_once(
+    root: Path,
+    model: str,
+    use_llm: bool,
+    dry_run: bool = False,
+    excluded_paths: Iterable[Path] = (),
+    global_duplicates: bool = False,
+) -> RunStats:
     """Deduplicate source folders, organize files, then deduplicate output folders."""
     root = root.expanduser().resolve()
     if not root.is_dir():
         raise NotADirectoryError(f"Folder does not exist: {root}")
 
     stats = RunStats()
-    source_groups = find_duplicate_groups(root)
-    stats.duplicate_groups += sum(len(groups) for groups in source_groups.values())
-    stats.duplicates_moved += move_duplicates(source_groups, dry_run=dry_run)
-    organize_files(root, model, use_llm, dry_run, stats)
+    if global_duplicates:
+        source_groups = find_global_duplicate_groups([root], excluded_paths)
+        stats.duplicate_groups += len(source_groups)
+        stats.duplicates_moved += move_global_duplicates(source_groups, dry_run=dry_run)
+    else:
+        source_groups = find_duplicate_groups(root, excluded_paths)
+        stats.duplicate_groups += sum(len(groups) for groups in source_groups.values())
+        stats.duplicates_moved += move_duplicates(source_groups, dry_run=dry_run)
+    organize_files(root, model, use_llm, dry_run, stats, excluded_paths)
 
     organized_root = root / ORGANIZED_DIR_NAME
     if organized_root.exists() and not dry_run:
-        output_groups = find_duplicate_groups(organized_root)
+        output_groups = find_duplicate_groups(organized_root, excluded_paths)
         stats.duplicate_groups += sum(len(groups) for groups in output_groups.values())
         stats.duplicates_moved += move_duplicates(output_groups, dry_run=False)
 
     return stats
 
 
-def watch(root: Path, model: str, use_llm: bool, dry_run: bool, interval: int) -> None:
+def watch(
+    root: Path,
+    model: str,
+    use_llm: bool,
+    dry_run: bool,
+    interval: int,
+    excluded_paths: Iterable[Path] = (),
+    global_duplicates: bool = False,
+) -> None:
     print(f"Watching {root} every {interval} seconds. Press Ctrl+C to stop.")
     while True:
-        stats = run_once(root, model, use_llm, dry_run)
+        stats = run_once(
+            root,
+            model,
+            use_llm,
+            dry_run,
+            excluded_paths,
+            global_duplicates,
+        )
         print(
             f"Scan complete: {stats.scanned} scanned, "
             f"{stats.categorized} organized, {stats.duplicates_moved} duplicates moved."

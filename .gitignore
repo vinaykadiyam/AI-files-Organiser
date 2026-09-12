@@ -12,3 +12,4 @@ memory.json
 .mypy_cache/
 .idea/
 .vscode/
+duplicate_pictures_report.*

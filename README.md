@@ -35,6 +35,7 @@ flowchart LR
 - Batch organization with collision-safe destination names.
 - Exact duplicate detection using SHA-256 hashes.
 - Per-folder duplicate handling: the newest file is kept and older copies move to a local `Duplicates` folder.
+- Optional global duplicate handling across all subfolders below a selected drive or computer root.
 - No automatic deletion of duplicate files.
 
 ## Project Files
@@ -151,6 +152,22 @@ python main.py --folder /media/user/drive/Photos
 ```
 
 The drive must be connected and the current user must have read/write access.
+
+### Compare Duplicates Across the Whole Drive
+
+By default, duplicate matching is limited to each individual folder. To check whether the same file exists anywhere below a drive or computer root, use `--global-duplicates`:
+
+```powershell
+python main.py --folder C:\ --global-duplicates --dry-run
+```
+
+This compares exact file bytes across all scanned subfolders, keeps the newest copy, and moves each older copy to the `Duplicates` folder beside that older file. Use `--exclude` for protected directories such as the project itself:
+
+```powershell
+python main.py --folder C:\ --global-duplicates --exclude C:\Users\pavan\OneDrive\Documents\Work\AI-files-Organiser --dry-run
+```
+
+Remove `--dry-run` only after reviewing the planned moves.
 
 ### Preview Changes Safely
 

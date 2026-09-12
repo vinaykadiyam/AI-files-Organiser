@@ -17,6 +17,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Folder or connected external-drive directory to scan. Defaults to Downloads.",
     )
     parser.add_argument(
+        "--exclude",
+        action="append",
+        default=[],
+        type=Path,
+        help="Path to skip; repeat this option for multiple paths.",
+    )
+    parser.add_argument(
         "--model",
         default=DEFAULT_MODEL,
         help=f"Ollama model to use (default: {DEFAULT_MODEL}).",
@@ -30,6 +37,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--dry-run",
         action="store_true",
         help="Show planned moves without changing files.",
+    )
+    parser.add_argument(
+        "--global-duplicates",
+        action="store_true",
+        help="Compare exact duplicates across all subfolders, not only within each folder.",
     )
     parser.add_argument(
         "--watch",
@@ -57,13 +69,28 @@ def main() -> None:
 
     if args.watch:
         try:
-            watch(root, args.model, not args.no_llm, args.dry_run, args.interval)
+            watch(
+                root,
+                args.model,
+                not args.no_llm,
+                args.dry_run,
+                args.interval,
+                args.exclude,
+                args.global_duplicates,
+            )
         except KeyboardInterrupt:
             print("Stopped.")
         return
 
     try:
-        stats = run_once(root, args.model, not args.no_llm, args.dry_run)
+        stats = run_once(
+            root,
+            args.model,
+            not args.no_llm,
+            args.dry_run,
+            args.exclude,
+            args.global_duplicates,
+        )
     except (NotADirectoryError, OSError) as error:
         raise SystemExit(str(error)) from error
 
