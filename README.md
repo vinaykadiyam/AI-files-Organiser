@@ -4,6 +4,10 @@ A local Python toolkit for organizing a Downloads folder with Ollama, OCR, PDF t
 
 ## Architecture
 
+![AI File Organizer system architecture](docs/system-architecture.svg)
+
+The static diagram above is the rendered architecture reference. The Mermaid diagram below remains editable and shows the same data flow in a GitHub-native format.
+
 ```mermaid
 flowchart LR
 	FS[Downloads folder] --> MODE{Choose workflow}

@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1040" viewBox="0 0 1400 1040" role="img" aria-labelledby="title desc">
+  <title id="title">AI File Organizer system architecture</title>
+  <desc id="desc">Downloads files flow through Python organizer workflows, local Ollama analysis, OCR, memory, and duplicate detection into organized folders.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,3 L0,6 Z" fill="#334155"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .title { font: 700 34px Arial, sans-serif; fill: #111827; }
+      .subtitle { font: 400 18px Arial, sans-serif; fill: #475569; }
+      .heading { font: 700 19px Arial, sans-serif; }
+      .body { font: 400 15px Arial, sans-serif; fill: #1f2937; }
+      .small { font: 400 13px Arial, sans-serif; fill: #334155; }
+      .box { stroke-width: 2; rx: 14; filter: url(#shadow); }
+      .arrow { stroke: #334155; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+      .dashed { stroke-dasharray: 8 7; }
+    </style>
+  </defs>
+
+  <rect width="1400" height="1040" fill="#ffffff"/>
+  <text x="700" y="48" text-anchor="middle" class="title">AI File Organizer Agent - System Architecture</text>
+  <text x="700" y="78" text-anchor="middle" class="subtitle">A local Python agent that understands, renames, organizes, and deduplicates files</text>
+
+  <rect x="45" y="120" width="360" height="220" fill="#eff6ff" stroke="#2563eb" class="box"/>
+  <text x="225" y="153" text-anchor="middle" class="heading" fill="#1d4ed8">1. File System</text>
+  <text x="225" y="178" text-anchor="middle" class="small">Downloads folder</text>
+  <rect x="82" y="208" width="82" height="61" rx="8" fill="#fbbf24" stroke="#b45309" stroke-width="2"/>
+  <path d="M82 218 Q82 204 96 204 L119 204 L132 216 L156 216 Q164 216 164 226 L164 262 Q164 269 156 269 L90 269 Q82 269 82 261 Z" fill="#fcd34d" stroke="#b45309" stroke-width="2"/>
+  <circle cx="147" cy="270" r="22" fill="#2563eb"/>
+  <path d="M147 257 V280 M137 270 L147 280 L157 270" stroke="#fff" stroke-width="4" fill="none"/>
+  <text x="123" y="301" text-anchor="middle" class="small">New files</text>
+  <text x="205" y="220" class="body">Example inputs</text>
+  <text x="205" y="246" class="body">- invoice_001.pdf</text>
+  <text x="205" y="269" class="body">- screenshot_2025.png</text>
+  <text x="205" y="292" class="body">- notes.txt</text>
+  <text x="205" y="315" class="body">- archive.zip</text>
+
+  <rect x="520" y="105" width="410" height="250" fill="#f0fdf4" stroke="#16a34a" class="box"/>
+  <text x="725" y="140" text-anchor="middle" class="heading" fill="#15803d">2. Python Agent</text>
+  <text x="725" y="166" text-anchor="middle" class="small">main.py, organizer.py, download_Organizer.py</text>
+  <circle cx="588" cy="225" r="37" fill="#dcfce7" stroke="#166534" stroke-width="3"/>
+  <rect x="555" y="202" width="66" height="48" rx="14" fill="#166534"/>
+  <circle cx="575" cy="224" r="6" fill="#fff"/><circle cx="601" cy="224" r="6" fill="#fff"/>
+  <path d="M575 238 Q588 247 601 238 M588 188 V178 M588 174 Q588 168 594 168" stroke="#166534" stroke-width="4" fill="none"/>
+  <text x="650" y="207" class="body">- Monitors or polls Downloads</text>
+  <text x="650" y="232" class="body">- Reads and classifies files</text>
+  <text x="650" y="257" class="body">- Renames and moves files</text>
+  <text x="650" y="282" class="body">- Records decisions and errors</text>
+  <text x="650" y="307" class="body">- Runs locally in a virtual environment</text>
+
+  <rect x="1035" y="120" width="320" height="220" fill="#faf5ff" stroke="#7c3aed" class="box"/>
+  <text x="1195" y="153" text-anchor="middle" class="heading" fill="#6d28d9">3. Memory</text>
+  <text x="1195" y="178" text-anchor="middle" class="small">memory.json</text>
+  <ellipse cx="1105" cy="224" rx="45" ry="14" fill="#8b5cf6" stroke="#5b21b6" stroke-width="2"/>
+  <path d="M1060 224 V275 Q1105 304 1150 275 V224 M1060 249 Q1105 278 1150 249" fill="#7c3aed" stroke="#5b21b6" stroke-width="2"/>
+  <text x="1180" y="218" class="body">Past decisions</text>
+  <text x="1180" y="243" class="body">Original filename</text>
+  <text x="1180" y="268" class="body">Category and new name</text>
+  <text x="1180" y="293" class="body">Recent context for consistency</text>
+
+  <path d="M405 230 H515" class="arrow"/>
+  <path d="M935 230 H1025" class="arrow dashed"/>
+
+  <rect x="45" y="410" width="390" height="270" fill="#fff7ed" stroke="#f97316" class="box"/>
+  <text x="240" y="444" text-anchor="middle" class="heading" fill="#c2410c">4. AI / LLM Layer</text>
+  <text x="240" y="469" text-anchor="middle" class="small">Ollama + local phi model</text>
+  <circle cx="115" cy="555" r="47" fill="#ffedd5" stroke="#ea580c" stroke-width="3"/>
+  <path d="M88 555 Q88 525 115 525 Q142 525 142 555 Q142 585 115 585 Q88 585 88 555 M78 545 L91 551 M139 551 L152 545 M103 515 L108 528 M127 515 L122 528" fill="none" stroke="#c2410c" stroke-width="4"/>
+  <text x="185" y="520" class="body">Receives filename, content,</text>
+  <text x="185" y="545" class="body">and memory context</text>
+  <text x="185" y="578" class="body">Returns category and optionally</text>
+  <text x="185" y="603" class="body">a clean filename</text>
+  <text x="185" y="636" class="body">Falls back when unavailable</text>
+
+  <rect x="505" y="410" width="390" height="270" fill="#fef2f2" stroke="#dc2626" class="box"/>
+  <text x="700" y="444" text-anchor="middle" class="heading" fill="#b91c1c">5. File Utilities</text>
+  <text x="700" y="469" text-anchor="middle" class="small">file_utils.py, PyPDF2, Pillow, Tesseract</text>
+  <rect x="560" y="525" width="85" height="68" rx="8" fill="#ef4444" stroke="#991b1b" stroke-width="2"/>
+  <path d="M560 539 Q560 525 574 525 H598 L610 538 H631 Q645 538 645 552 V581 Q645 593 633 593 H572 Q560 593 560 581 Z" fill="#f87171" stroke="#991b1b" stroke-width="2"/>
+  <text x="680" y="520" class="body">- Resolve Downloads path</text>
+  <text x="680" y="548" class="body">- Extract PDF text and image OCR</text>
+  <text x="680" y="576" class="body">- Create category folders</text>
+  <text x="680" y="604" class="body">- Move files safely</text>
+  <text x="680" y="632" class="body">- Hash files for exact duplicates</text>
+
+  <rect x="965" y="410" width="390" height="270" fill="#eff6ff" stroke="#2563eb" class="box"/>
+  <text x="1160" y="444" text-anchor="middle" class="heading" fill="#1d4ed8">6. Config and Rules</text>
+  <text x="1160" y="469" text-anchor="middle" class="small">config.py and category definitions</text>
+  <path d="M1025 535 H1080 L1094 549 H1150 V620 H1025 Z" fill="#bfdbfe" stroke="#1d4ed8" stroke-width="3"/>
+  <circle cx="1090" cy="580" r="20" fill="#fff" stroke="#1d4ed8" stroke-width="3"/>
+  <path d="M1090 566 V594 M1076 580 H1104" stroke="#1d4ed8" stroke-width="3"/>
+  <text x="1195" y="530" class="body">- Supported image types</text>
+  <text x="1195" y="560" class="body">- Category names and keywords</text>
+  <text x="1195" y="590" class="body">- Ollama model configuration</text>
+  <text x="1195" y="620" class="body">- Duplicate folder rules</text>
+
+  <path d="M725 355 V395" class="arrow dashed"/>
+  <path d="M725 395 H240 V400" class="arrow dashed"/>
+  <path d="M725 395 V400" class="arrow dashed"/>
+  <path d="M725 395 H1160 V400" class="arrow dashed"/>
+  <path d="M435 545 H495" class="arrow"/>
+  <path d="M895 545 H955" class="arrow"/>
+
+  <rect x="45" y="755" width="1310" height="220" fill="#f8fafc" stroke="#94a3b8" class="box"/>
+  <text x="700" y="790" text-anchor="middle" class="heading" fill="#334155">7. Organized Files and Duplicate Review</text>
+  <text x="700" y="818" text-anchor="middle" class="small">Output destinations are created only when needed</text>
+  <path d="M135 880 H245 M315 880 H425 M495 880 H605 M675 880 H785 M855 880 H965 M1035 880 H1145" class="arrow"/>
+  <circle cx="105" cy="880" r="28" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/><text x="105" y="885" text-anchor="middle" class="small">Input</text>
+  <circle cx="285" cy="880" r="28" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/><text x="285" y="885" text-anchor="middle" class="small">Read</text>
+  <circle cx="465" cy="880" r="28" fill="#ffedd5" stroke="#f97316" stroke-width="2"/><text x="465" y="885" text-anchor="middle" class="small">OCR</text>
+  <circle cx="645" cy="880" r="28" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/><text x="645" y="885" text-anchor="middle" class="small">AI</text>
+  <circle cx="825" cy="880" r="28" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/><text x="825" y="885" text-anchor="middle" class="small">Move</text>
+  <circle cx="1005" cy="880" r="28" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/><text x="1005" y="885" text-anchor="middle" class="small">Hash</text>
+  <circle cx="1185" cy="880" r="28" fill="#f3e8ff" stroke="#7c3aed" stroke-width="2"/><text x="1185" y="885" text-anchor="middle" class="small">Keep</text>
+  <text x="100" y="935" text-anchor="middle" class="small">Downloads</text>
+  <text x="285" y="935" text-anchor="middle" class="small">Python agent</text>
+  <text x="465" y="935" text-anchor="middle" class="small">Text content</text>
+  <text x="645" y="935" text-anchor="middle" class="small">Category</text>
+  <text x="825" y="935" text-anchor="middle" class="small">Organized/</text>
+  <text x="1005" y="935" text-anchor="middle" class="small">Per-folder</text>
+  <text x="1185" y="935" text-anchor="middle" class="small">Newest file</text>
+</svg>
