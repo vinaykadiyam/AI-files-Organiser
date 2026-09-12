@@ -1,0 +1,6 @@
+requests
+pillow
+pytesseract
+watchdog
+ollama
+PyPDF2
