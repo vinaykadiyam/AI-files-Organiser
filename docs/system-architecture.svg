@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1040" viewBox="0 0 1400 1040" role="img" aria-labelledby="title desc">
   <title id="title">AI File Organizer system architecture</title>
-  <desc id="desc">Downloads files flow through Python organizer workflows, local Ollama analysis, OCR, memory, and duplicate detection into organized folders.</desc>
+  <desc id="desc">Files from a selected folder or connected external drive flow through one recursive Python pipeline, local Ollama analysis, OCR, and duplicate detection into organized folders.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L10,3 L0,6 Z" fill="#334155"/>
@@ -26,7 +26,7 @@
 
   <rect x="45" y="120" width="360" height="220" fill="#eff6ff" stroke="#2563eb" class="box"/>
   <text x="225" y="153" text-anchor="middle" class="heading" fill="#1d4ed8">1. File System</text>
-  <text x="225" y="178" text-anchor="middle" class="small">Downloads folder</text>
+  <text x="225" y="178" text-anchor="middle" class="small">Selected folder / external drive</text>
   <rect x="82" y="208" width="82" height="61" rx="8" fill="#fbbf24" stroke="#b45309" stroke-width="2"/>
   <path d="M82 218 Q82 204 96 204 L119 204 L132 216 L156 216 Q164 216 164 226 L164 262 Q164 269 156 269 L90 269 Q82 269 82 261 Z" fill="#fcd34d" stroke="#b45309" stroke-width="2"/>
   <circle cx="147" cy="270" r="22" fill="#2563eb"/>
@@ -40,26 +40,26 @@
 
   <rect x="520" y="105" width="410" height="250" fill="#f0fdf4" stroke="#16a34a" class="box"/>
   <text x="725" y="140" text-anchor="middle" class="heading" fill="#15803d">2. Python Agent</text>
-  <text x="725" y="166" text-anchor="middle" class="small">main.py, organizer.py, download_Organizer.py</text>
+  <text x="725" y="166" text-anchor="middle" class="small">main.py + organizer_core.py</text>
   <circle cx="588" cy="225" r="37" fill="#dcfce7" stroke="#166534" stroke-width="3"/>
   <rect x="555" y="202" width="66" height="48" rx="14" fill="#166534"/>
   <circle cx="575" cy="224" r="6" fill="#fff"/><circle cx="601" cy="224" r="6" fill="#fff"/>
   <path d="M575 238 Q588 247 601 238 M588 188 V178 M588 174 Q588 168 594 168" stroke="#166534" stroke-width="4" fill="none"/>
-  <text x="650" y="207" class="body">- Monitors or polls Downloads</text>
-  <text x="650" y="232" class="body">- Reads and classifies files</text>
-  <text x="650" y="257" class="body">- Renames and moves files</text>
-  <text x="650" y="282" class="body">- Records decisions and errors</text>
+  <text x="650" y="207" class="body">- Accepts any selected folder path</text>
+  <text x="650" y="232" class="body">- Recursively scans subfolders</text>
+  <text x="650" y="257" class="body">- Organizes and deduplicates files</text>
+  <text x="650" y="282" class="body">- Supports dry-run and watch modes</text>
   <text x="650" y="307" class="body">- Runs locally in a virtual environment</text>
 
   <rect x="1035" y="120" width="320" height="220" fill="#faf5ff" stroke="#7c3aed" class="box"/>
-  <text x="1195" y="153" text-anchor="middle" class="heading" fill="#6d28d9">3. Memory</text>
-  <text x="1195" y="178" text-anchor="middle" class="small">memory.json</text>
+  <text x="1195" y="153" text-anchor="middle" class="heading" fill="#6d28d9">3. Run Controls</text>
+  <text x="1195" y="178" text-anchor="middle" class="small">CLI options</text>
   <ellipse cx="1105" cy="224" rx="45" ry="14" fill="#8b5cf6" stroke="#5b21b6" stroke-width="2"/>
   <path d="M1060 224 V275 Q1105 304 1150 275 V224 M1060 249 Q1105 278 1150 249" fill="#7c3aed" stroke="#5b21b6" stroke-width="2"/>
-  <text x="1180" y="218" class="body">Past decisions</text>
-  <text x="1180" y="243" class="body">Original filename</text>
-  <text x="1180" y="268" class="body">Category and new name</text>
-  <text x="1180" y="293" class="body">Recent context for consistency</text>
+  <text x="1180" y="218" class="body">--folder path</text>
+  <text x="1180" y="243" class="body">--model phi</text>
+  <text x="1180" y="268" class="body">--dry-run preview</text>
+  <text x="1180" y="293" class="body">--watch interval</text>
 
   <path d="M405 230 H515" class="arrow"/>
   <path d="M935 230 H1025" class="arrow dashed"/>
@@ -69,22 +69,22 @@
   <text x="240" y="469" text-anchor="middle" class="small">Ollama + local phi model</text>
   <circle cx="115" cy="555" r="47" fill="#ffedd5" stroke="#ea580c" stroke-width="3"/>
   <path d="M88 555 Q88 525 115 525 Q142 525 142 555 Q142 585 115 585 Q88 585 88 555 M78 545 L91 551 M139 551 L152 545 M103 515 L108 528 M127 515 L122 528" fill="none" stroke="#c2410c" stroke-width="4"/>
-  <text x="185" y="520" class="body">Receives filename, content,</text>
-  <text x="185" y="545" class="body">and memory context</text>
-  <text x="185" y="578" class="body">Returns category and optionally</text>
-  <text x="185" y="603" class="body">a clean filename</text>
-  <text x="185" y="636" class="body">Falls back when unavailable</text>
+  <text x="185" y="520" class="body">Receives filename, extension,</text>
+  <text x="185" y="545" class="body">and bounded extracted content</text>
+  <text x="185" y="578" class="body">Returns one validated category</text>
+  <text x="185" y="603" class="body">for the organizer</text>
+  <text x="185" y="636" class="body">Falls back by extension</text>
 
   <rect x="505" y="410" width="390" height="270" fill="#fef2f2" stroke="#dc2626" class="box"/>
   <text x="700" y="444" text-anchor="middle" class="heading" fill="#b91c1c">5. File Utilities</text>
   <text x="700" y="469" text-anchor="middle" class="small">file_utils.py, PyPDF2, Pillow, Tesseract</text>
   <rect x="560" y="525" width="85" height="68" rx="8" fill="#ef4444" stroke="#991b1b" stroke-width="2"/>
   <path d="M560 539 Q560 525 574 525 H598 L610 538 H631 Q645 538 645 552 V581 Q645 593 633 593 H572 Q560 593 560 581 Z" fill="#f87171" stroke="#991b1b" stroke-width="2"/>
-  <text x="680" y="520" class="body">- Resolve Downloads path</text>
-  <text x="680" y="548" class="body">- Extract PDF text and image OCR</text>
-  <text x="680" y="576" class="body">- Create category folders</text>
-  <text x="680" y="604" class="body">- Move files safely</text>
-  <text x="680" y="632" class="body">- Hash files for exact duplicates</text>
+  <text x="680" y="520" class="body">- Resolve any selected folder</text>
+  <text x="680" y="548" class="body">- Extract text, PDF text, and OCR</text>
+  <text x="680" y="576" class="body">- Hash every readable file</text>
+  <text x="680" y="604" class="body">- Create category folders</text>
+  <text x="680" y="632" class="body">- Move files collision-safely</text>
 
   <rect x="965" y="410" width="390" height="270" fill="#eff6ff" stroke="#2563eb" class="box"/>
   <text x="1160" y="444" text-anchor="middle" class="heading" fill="#1d4ed8">6. Config and Rules</text>
@@ -93,9 +93,9 @@
   <circle cx="1090" cy="580" r="20" fill="#fff" stroke="#1d4ed8" stroke-width="3"/>
   <path d="M1090 566 V594 M1076 580 H1104" stroke="#1d4ed8" stroke-width="3"/>
   <text x="1195" y="530" class="body">- Supported image types</text>
-  <text x="1195" y="560" class="body">- Category names and keywords</text>
-  <text x="1195" y="590" class="body">- Ollama model configuration</text>
-  <text x="1195" y="620" class="body">- Duplicate folder rules</text>
+  <text x="1195" y="560" class="body">- Category and extension rules</text>
+  <text x="1195" y="590" class="body">- Ollama model selection</text>
+  <text x="1195" y="620" class="body">- Excluded output folders</text>
 
   <path d="M725 355 V395" class="arrow dashed"/>
   <path d="M725 395 H240 V400" class="arrow dashed"/>
@@ -115,8 +115,8 @@
   <circle cx="825" cy="880" r="28" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/><text x="825" y="885" text-anchor="middle" class="small">Move</text>
   <circle cx="1005" cy="880" r="28" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/><text x="1005" y="885" text-anchor="middle" class="small">Hash</text>
   <circle cx="1185" cy="880" r="28" fill="#f3e8ff" stroke="#7c3aed" stroke-width="2"/><text x="1185" y="885" text-anchor="middle" class="small">Keep</text>
-  <text x="100" y="935" text-anchor="middle" class="small">Downloads</text>
-  <text x="285" y="935" text-anchor="middle" class="small">Python agent</text>
+  <text x="100" y="935" text-anchor="middle" class="small">Selected folder</text>
+  <text x="285" y="935" text-anchor="middle" class="small">Recursive scan</text>
   <text x="465" y="935" text-anchor="middle" class="small">Text content</text>
   <text x="645" y="935" text-anchor="middle" class="small">Category</text>
   <text x="825" y="935" text-anchor="middle" class="small">Organized/</text>

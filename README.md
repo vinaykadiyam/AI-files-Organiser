@@ -10,34 +10,18 @@ The static diagram above is the rendered architecture reference. The Mermaid dia
 
 ```mermaid
 flowchart LR
-	FS[Downloads folder] --> MODE{Choose workflow}
-	MODE --> POLL[main.py\nPolling organizer]
-	MODE --> WATCH[organizer.py\nWatchdog organizer]
-	MODE --> BATCH[download_Organizer.py\nBatch organizer]
-	MODE --> DUP[dups_using_llm.py\nDuplicate cleaner]
-
-	POLL --> IMG[Image OCR\nPillow + Tesseract]
-	POLL --> MEMORY[memory.json\nPrevious decisions]
-	IMG --> PROMPT[Filename + extracted content + memory]
-	MEMORY --> PROMPT
-	PROMPT --> OLLAMA[Ollama\nphi model]
-	OLLAMA --> DECISION[Category + clean filename]
-	DECISION --> MOVE1[Rename and move]
-
-	WATCH --> CONTENT[PDF text extraction\nPyPDF2\nImage OCR]
-	CONTENT --> OLLAMA2[Ollama\nphi model]
-	OLLAMA2 --> CATEGORY[Configured category]
-	CATEGORY --> MOVE2[Move into category folder]
-
-	BATCH --> BASIC[Extension category]
-	BATCH --> OLLAMA3[Optional Ollama\nphi classification]
-	BASIC --> MOVE3[Move into Organized/category]
-	OLLAMA3 --> MOVE3
-
-	DUP --> HASH[SHA-256 content hash]
-	HASH --> SAME[Group duplicates\ninside each folder only]
-	SAME --> LATEST[Keep newest by modification time]
-	LATEST --> MOVE4[Move older copies to\nthat folder/Duplicates]
+	FS[Selected folder or connected external drive] --> CLI[main.py unified CLI]
+	CLI --> CORE[organizer_core.py\nrecursive pipeline]
+	CLI --> OPTIONS[--folder, --model,\n--dry-run, --watch]
+	CORE --> DISCOVER[Recursive file discovery\nskip generated folders]
+	DISCOVER --> HASH[SHA-256 duplicate scan\nwithin each directory]
+	HASH --> OLDER[Keep newest\nmove older to folder/Duplicates]
+	DISCOVER --> CONTENT[Content extraction\ntext, PDF, image OCR]
+	CONTENT --> OLLAMA[Ollama\nphi model]
+	OLLAMA --> CATEGORY[Validated category\nwith extension fallback]
+	CATEGORY --> ORGANIZE[Move to\nOrganized/category]
+	ORGANIZE --> FINAL[Second duplicate pass\ninside organized folders]
+	FINAL --> OUTPUT[Organized files +\nper-folder Duplicates]
 ```
 
 ## Features
