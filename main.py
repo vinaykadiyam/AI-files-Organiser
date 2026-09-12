@@ -1,42 +1,79 @@
-import os
-import time
-from Ai_utils import analyze_file
-from file_utils import (
-    get_all_files,
-    extract_text_from_image,
-    move_file
-)
-from config import SUPPORTED_IMAGE_TYPES
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+from organizer_core import DEFAULT_MODEL, default_folder, run_once, watch
 
 
-def process_file(file_path):
-    filename = os.path.basename(file_path)
-    ext = os.path.splitext(filename)[1].lower()
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Recursively organize files and move exact duplicates safely."
+    )
+    parser.add_argument(
+        "--folder",
+        type=Path,
+        default=None,
+        help="Folder or connected external-drive directory to scan. Defaults to Downloads.",
+    )
+    parser.add_argument(
+        "--model",
+        default=DEFAULT_MODEL,
+        help=f"Ollama model to use (default: {DEFAULT_MODEL}).",
+    )
+    parser.add_argument(
+        "--no-llm",
+        action="store_true",
+        help="Skip Ollama and classify by file extension only.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show planned moves without changing files.",
+    )
+    parser.add_argument(
+        "--watch",
+        action="store_true",
+        help="Repeat the scan periodically for newly added files.",
+    )
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=60,
+        help="Seconds between watch scans (default: 60).",
+    )
+    return parser
 
-    content = ""
 
-    # If image → extract text
-    if ext in SUPPORTED_IMAGE_TYPES:
-        content = extract_text_from_image(file_path)
+def main() -> None:
+    args = build_parser().parse_args()
+    root = (args.folder or default_folder()).expanduser()
+    if args.interval < 1:
+        raise SystemExit("--interval must be at least 1 second")
 
-    new_name, category = analyze_file(filename, content)
+    print(f"Scanning: {root.resolve()}")
+    print(f"LLM: {'disabled' if args.no_llm else args.model}")
+    print(f"Mode: {'dry run' if args.dry_run else 'move files'}")
 
-    move_file(file_path, new_name, category)
+    if args.watch:
+        try:
+            watch(root, args.model, not args.no_llm, args.dry_run, args.interval)
+        except KeyboardInterrupt:
+            print("Stopped.")
+        return
 
+    try:
+        stats = run_once(root, args.model, not args.no_llm, args.dry_run)
+    except (NotADirectoryError, OSError) as error:
+        raise SystemExit(str(error)) from error
 
-def main():
-    while True:
-        files = get_all_files()
-
-        for file in files:
-            if os.path.isfile(file):
-                try:
-                    process_file(file)
-                except Exception as e:
-                    print(f"Error processing {file}: {e}")
-
-        print("Waiting for new files...")
-        time.sleep(60) 
+    print(
+        f"Complete: {stats.scanned} scanned, {stats.categorized} organized, "
+        f"{stats.duplicate_groups} duplicate group(s), "
+        f"{stats.duplicates_moved} older duplicate(s) moved."
+    )
+    if stats.errors:
+        print(f"Completed with {len(stats.errors)} file error(s).")
 
 
 if __name__ == "__main__":

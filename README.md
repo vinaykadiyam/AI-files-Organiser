@@ -1,6 +1,6 @@
 # AI File Organizer
 
-A local Python toolkit for organizing a Downloads folder with Ollama, OCR, PDF text extraction, file hashing, and configurable category rules. Files stay on the local machine; the project does not upload file contents to a cloud service.
+A local Python toolkit for recursively organizing any selected folder, including connected external drives, with Ollama, OCR, PDF text extraction, file hashing, and configurable category rules. `main.py` is the combined entry point for classification, organization, and duplicate handling. Files stay on the local machine; the project does not upload file contents to a cloud service.
 
 ## Architecture
 
@@ -57,7 +57,8 @@ flowchart LR
 
 | File | Purpose |
 | --- | --- |
-| `main.py` | Polls Downloads every 60 seconds, analyzes files, renames them, and moves them into categories. |
+| `main.py` | Combined CLI for recursive scanning, LLM categorization, safe moves, duplicate handling, dry runs, and watch mode. |
+| `organizer_core.py` | Shared pipeline for traversal, OCR/PDF/text extraction, Ollama classification, hashing, and collision-safe moves. |
 | `organizer.py` | Watches for new files with `watchdog`, extracts PDF/image content, and moves files into configured categories. |
 | `download_Organizer.py` | Performs a one-time batch organization using Ollama with extension-based fallback. |
 | `dups_using_llm.py` | Recursively finds exact duplicates within each folder, keeps the newest, and moves older copies to `Duplicates`. Despite its historical name, duplicate decisions use hashing rather than an LLM. |
@@ -129,11 +130,82 @@ The service listens at `http://localhost:11434` by default. Verify it with:
 Invoke-WebRequest http://localhost:11434/api/tags -UseBasicParsing
 ```
 
-## Running the Organizers
+## Running the Combined Organizer
 
-Run commands from the project directory with the virtual environment activated.
+Run commands from the project directory with the virtual environment activated. The combined pipeline performs these steps:
 
-### Watch for New Files
+1. Recursively scan the selected folder and its subfolders.
+2. Skip generated output, duplicate, virtual environment, and Git folders.
+3. Hash files within each directory and move older exact duplicates to that directory's `Duplicates` folder.
+4. Extract text from supported text files, PDFs, and images with OCR.
+5. Ask the local Ollama model to categorize each remaining file.
+6. Move files to `<selected folder>/Organized/<category>` using collision-safe names.
+7. Run a second duplicate pass inside the organized category folders.
+
+### Scan the Downloads Folder
+
+```powershell
+python main.py
+```
+
+The default folder is the current user's `Downloads` directory. The command uses Ollama with the `phi` model and changes files.
+
+### Scan an External Drive or Any Folder
+
+Pass the mounted drive or directory explicitly. Windows examples:
+
+```powershell
+python main.py --folder E:\SharedFiles
+python main.py --folder F:\Photos
+```
+
+macOS/Linux examples:
+
+```bash
+python main.py --folder /Volumes/Backup/Files
+python main.py --folder /media/user/drive/Photos
+```
+
+The drive must be connected and the current user must have read/write access.
+
+### Preview Changes Safely
+
+Use `--dry-run` to see planned duplicate and organization moves without changing files:
+
+```powershell
+python main.py --folder E:\SharedFiles --dry-run
+```
+
+### Use the LLM and Choose a Different Model
+
+The default model is `phi`. Pull another Ollama model first, then select it:
+
+```powershell
+ollama pull mistral
+python main.py --folder E:\SharedFiles --model mistral
+```
+
+Use `--no-llm` for an offline extension-based fallback:
+
+```powershell
+python main.py --folder E:\SharedFiles --no-llm
+```
+
+### Keep Watching for New Files
+
+Use polling watch mode for a connected folder or Downloads directory:
+
+```powershell
+python main.py --folder E:\SharedFiles --watch --interval 60
+```
+
+Press `Ctrl+C` to stop it. Do not run multiple organizer processes against the same folder at the same time.
+
+## Legacy Entry Points
+
+The following scripts remain available for compatibility, but `main.py` is the recommended combined workflow.
+
+### Watchdog Organizer
 
 `organizer.py` uses `watchdog` and reacts when a new file appears in Downloads. It extracts PDF text or image OCR text, asks Ollama for a category, then moves the file into a category directory.
 
@@ -143,15 +215,11 @@ python organizer.py
 
 Press `Ctrl+C` to stop it. This watcher uses the categories defined in `organizer.py` and does not recursively watch files already inside category folders.
 
-### Polling Organizer with Rename and Memory
+### Previous Polling Organizer
 
-`main.py` checks Downloads every 60 seconds. It sends the filename, image OCR content, and recent decisions from `memory.json` to Ollama. The response can provide both a category and a clean filename.
+The previous `main.py` behavior has been replaced by the combined pipeline. The older memory-based implementation remains in `Ai_utils.py` for reference and compatibility, but the unified pipeline uses bounded content prompts and category-safe responses.
 
-```powershell
-python main.py
-```
-
-This workflow can rename files before moving them. Keep `memory.json` local because it may contain filenames and category history.
+There is no separate command to run for this legacy behavior. Use `main.py` or `main.py --watch` instead.
 
 ### One-Time Batch Organizer
 
